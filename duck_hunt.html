@@ -1,0 +1,544 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Professional Duck Hunt</title>
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            height: 100vh;
+            background: #333;
+            overflow: hidden;
+            font-family: Arial, sans-serif;
+            cursor: none;
+        }
+
+        #game-container {
+            position: relative;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(to bottom, #87CEEB 0%, #1E90FF 100%);
+            overflow: hidden;
+        }
+
+        #scope {
+            position: absolute;
+            width: 200px;
+            height: 200px;
+            border: 2px solid red;
+            border-radius: 50%;
+            pointer-events: none;
+            z-index: 100;
+            transform: translate(-50%, -50%) scale(1);
+            transition: transform 0.3s;
+            background: rgba(0, 0, 0, 0.3);
+            box-shadow: 0 0 20px rgba(255, 0, 0, 0.5);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        #scope::before, #scope::after {
+            content: '';
+            position: absolute;
+            background: red;
+        }
+
+        #scope::before {
+            width: 100%;
+            height: 2px;
+        }
+
+        #scope::after {
+            width: 2px;
+            height: 100%;
+        }
+
+        #scope.zoomed {
+            transform: translate(-50%, -50%) scale(0.5);
+            background: rgba(0, 0, 0, 0.7);
+        }
+
+        .duck {
+            position: absolute;
+            width: 60px;
+            height: 60px;
+            background-image: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><path d="M30,50 Q50,20 70,50 Q90,70 70,90 Q50,110 30,90 Q10,70 30,50" fill="%23FF8C00"/><circle cx="70" cy="50" r="5" fill="black"/><path d="M75,55 Q80,60 75,65" stroke="black" stroke-width="2" fill="none"/></svg>');
+            background-size: contain;
+            background-repeat: no-repeat;
+            z-index: 10;
+            transition: transform 0.1s;
+            transform-origin: center;
+        }
+
+        #hud {
+            position: absolute;
+            bottom: 20px;
+            left: 20px;
+            background: rgba(0, 0, 0, 0.7);
+            color: white;
+            padding: 15px;
+            border-radius: 10px;
+            font-family: 'Courier New', monospace;
+            z-index: 50;
+            display: flex;
+            flex-direction: column;
+            gap: 5px;
+        }
+
+        #ammo {
+            position: absolute;
+            bottom: 20px;
+            right: 20px;
+            background: rgba(0, 0, 0, 0.7);
+            color: white;
+            padding: 15px;
+            border-radius: 10px;
+            font-family: 'Courier New', monospace;
+            z-index: 50;
+        }
+
+        #game-over {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: rgba(0, 0, 0, 0.9);
+            color: white;
+            padding: 30px;
+            border-radius: 15px;
+            text-align: center;
+            display: none;
+            z-index: 200;
+            width: 400px;
+        }
+
+        #restart-btn {
+            background: #4CAF50;
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            font-size: 18px;
+            cursor: pointer;
+            border-radius: 8px;
+            margin-top: 20px;
+            transition: all 0.3s;
+        }
+
+        #restart-btn:hover {
+            background: #45a049;
+            transform: scale(1.05);
+        }
+
+        .bullet-hole {
+            position: absolute;
+            width: 10px;
+            height: 10px;
+            background: black;
+            border-radius: 50%;
+            z-index: 5;
+        }
+
+        .feathers {
+            position: absolute;
+            width: 100px;
+            height: 100px;
+            background-image: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><path d="M30,50 Q40,20 60,30 Q80,40 70,70 Q60,100 40,90 Q20,80 30,50" fill="white" opacity="0.8"/></svg>');
+            background-size: contain;
+            z-index: 8;
+            animation: featherExplosion 1s forwards;
+        }
+
+        @keyframes featherExplosion {
+            0% { transform: scale(0.5); opacity: 1; }
+            100% { transform: scale(1.5); opacity: 0; }
+        }
+
+        .points-popup {
+            position: absolute;
+            color: gold;
+            font-weight: bold;
+            font-size: 24px;
+            text-shadow: 2px 2px 4px black;
+            animation: floatUp 1s forwards;
+            z-index: 15;
+        }
+
+        @keyframes floatUp {
+            0% { transform: translateY(0); opacity: 1; }
+            100% { transform: translateY(-50px); opacity: 0; }
+        }
+
+        #wind-indicator {
+            position: absolute;
+            top: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: rgba(0, 0, 0, 0.7);
+            color: white;
+            padding: 10px 20px;
+            border-radius: 5px;
+            font-family: 'Courier New', monospace;
+            z-index: 50;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        #wind-arrow {
+            width: 0;
+            height: 0;
+            border-left: 10px solid transparent;
+            border-right: 10px solid transparent;
+            border-bottom: 15px solid white;
+            transform-origin: center bottom;
+        }
+    </style>
+</head>
+<body>
+    <div id="game-container">
+        <div id="scope"></div>
+        <div id="wind-indicator">
+            <div id="wind-arrow"></div>
+            <span id="wind-value">0 m/s</span>
+        </div>
+        <div id="hud">
+            <div>SCORE: <span id="score">0</span></div>
+            <div>DUCKS: <span id="ducks-left">10</span></div>
+            <div>WIND: <span id="wind-direction">0°</span></div>
+        </div>
+        <div id="ammo">
+            <div>AMMO: <span id="ammo-count">5</span>/5</div>
+        </div>
+        <div id="game-over">
+            <h2>MISSION COMPLETE</h2>
+            <p>FINAL SCORE: <span id="final-score">0</span></p>
+            <p id="performance-comment"></p>
+            <button id="restart-btn">NEW HUNT</button>
+        </div>
+    </div>
+
+    <!-- Sound Effects -->
+    <audio id="gunshot" src="https://assets.mixkit.co/sfx/preview/mixkit-sniper-rifle-1684.mp3" preload="auto"></audio>
+    <audio id="reload" src="https://assets.mixkit.co/sfx/preview/mixkit-rifle-reload-1915.mp3" preload="auto"></audio>
+    <audio id="duck-quack" src="https://assets.mixkit.co/sfx/preview/mixkit-duck-quacking-1129.mp3" preload="auto"></audio>
+    <audio id="duck-hit" src="https://assets.mixkit.co/sfx/preview/mixkit-arrow-impact-1400.mp3" preload="auto"></audio>
+    <audio id="victory-sound" src="https://assets.mixkit.co/sfx/preview/mixkit-victory-fanfare-2013.mp3" preload="auto"></audio>
+    <audio id="zoom-sound" src="https://assets.mixkit.co/sfx/preview/mixkit-sci-fi-click-901.mp3" preload="auto"></audio>
+
+    <script>
+        // Game Elements
+        const gameContainer = document.getElementById('game-container');
+        const scope = document.getElementById('scope');
+        const scoreElement = document.getElementById('score');
+        const ducksLeftElement = document.getElementById('ducks-left');
+        const ammoCountElement = document.getElementById('ammo-count');
+        const gameOverElement = document.getElementById('game-over');
+        const finalScoreElement = document.getElementById('final-score');
+        const restartBtn = document.getElementById('restart-btn');
+        const windArrow = document.getElementById('wind-arrow');
+        const windValue = document.getElementById('wind-value');
+        const windDirection = document.getElementById('wind-direction');
+        const performanceComment = document.getElementById('performance-comment');
+
+        // Sound Effects
+        const gunshotSound = document.getElementById('gunshot');
+        const reloadSound = document.getElementById('reload');
+        const duckQuackSound = document.getElementById('duck-quack');
+        const duckHitSound = document.getElementById('duck-hit');
+        const victorySound = document.getElementById('victory-sound');
+        const zoomSound = document.getElementById('zoom-sound');
+
+        // Game Variables
+        let score = 0;
+        let ducksLeft = 10;
+        let ammo = 5;
+        let gameRunning = true;
+        let ducks = [];
+        let isZoomed = false;
+        let windSpeed = 0;
+        let windAngle = 0;
+        let bulletHoles = [];
+        let zoomLevel = 1;
+
+        // Initialize Game
+        function initGame() {
+            score = 0;
+            ducksLeft = 10;
+            ammo = 5;
+            gameRunning = true;
+            ducks = [];
+            isZoomed = false;
+            zoomLevel = 1;
+            
+            scoreElement.textContent = score;
+            ducksLeftElement.textContent = ducksLeft;
+            ammoCountElement.textContent = ammo;
+            gameOverElement.style.display = 'none';
+            
+            // Clear existing elements
+            document.querySelectorAll('.duck, .bullet-hole, .feathers, .points-popup').forEach(el => el.remove());
+            
+            // Set initial wind
+            updateWind();
+            
+            // Start wind changes
+            setInterval(updateWind, 10000);
+            
+            // Spawn initial ducks
+            spawnDuck();
+            spawnDuck();
+            
+            // Continuous duck spawning
+            setInterval(() => {
+                if (gameRunning && ducks.length < 4 && ducksLeft > 0) {
+                    spawnDuck();
+                }
+            }, 3000);
+        }
+
+        // Update wind conditions
+        function updateWind() {
+            if (!gameRunning) return;
+            
+            windSpeed = Math.random() * 10;
+            windAngle = Math.random() * 360;
+            
+            windArrow.style.transform = `rotate(${windAngle}deg)`;
+            windValue.textContent = `${windSpeed.toFixed(1)} m/s`;
+            windDirection.textContent = `${Math.round(windAngle)}°`;
+        }
+
+        // Spawn a duck with realistic flight
+        function spawnDuck() {
+            if (ducksLeft <= 0 || !gameRunning) return;
+            
+            ducksLeft--;
+            ducksLeftElement.textContent = ducksLeft;
+            
+            const duck = document.createElement('div');
+            duck.className = 'duck';
+            
+            // Random starting position (left or right edge)
+            const startSide = Math.random() > 0.5 ? 'left' : 'right';
+            const startY = Math.random() * (window.innerHeight * 0.7) + 50;
+            
+            if (startSide === 'left') {
+                duck.style.left = '-60px';
+            } else {
+                duck.style.left = window.innerWidth + 'px';
+                duck.style.transform = 'scaleX(-1)'; // Face left
+            }
+            
+            duck.style.top = startY + 'px';
+            gameContainer.appendChild(duck);
+            
+            // Flight parameters
+            const speed = 2 + Math.random() * 3;
+            const amplitude = 50 + Math.random() * 100;
+            const frequency = 0.01 + Math.random() * 0.02;
+            let x = startSide === 'left' ? -60 : window.innerWidth;
+            let time = 0;
+            
+            // Flight path (sine wave for realistic movement)
+            const fly = () => {
+                if (!gameRunning) return;
+                
+                time += 0.1;
+                
+                if (startSide === 'left') {
+                    x += speed;
+                    duck.style.left = x + 'px';
+                } else {
+                    x -= speed;
+                    duck.style.left = x + 'px';
+                }
+                
+                // Sine wave flight path
+                const y = startY + Math.sin(time * frequency) * amplitude;
+                duck.style.top = y + 'px';
+                
+                // Random quacking
+                if (Math.random() < 0.005) {
+                    duckQuackSound.currentTime = 0;
+                    duckQuackSound.play();
+                }
+                
+                // Check if duck flew off screen
+                if (
+                    (startSide === 'left' && x > window.innerWidth + 100) ||
+                    (startSide === 'right' && x < -100)
+                ) {
+                    duck.remove();
+                    ducks = ducks.filter(d => d.element !== duck);
+                    
+                    if (ducksLeft <= 0 && ducks.length === 0) {
+                        endGame();
+                    }
+                } else {
+                    requestAnimationFrame(fly);
+                }
+            };
+            
+            ducks.push({
+                element: duck,
+                fly: fly
+            });
+            
+            fly();
+        }
+
+        // Shoot function with bullet physics
+        function shoot(x, y) {
+            if (!gameRunning || ammo <= 0) return;
+            
+            ammo--;
+            ammoCountElement.textContent = ammo;
+            gunshotSound.currentTime = 0;
+            gunshotSound.play();
+            
+            // Create bullet hole
+            const bulletHole = document.createElement('div');
+            bulletHole.className = 'bullet-hole';
+            bulletHole.style.left = (x - 5) + 'px';
+            bulletHole.style.top = (y - 5) + 'px';
+            gameContainer.appendChild(bulletHole);
+            bulletHoles.push(bulletHole);
+            
+            // Apply wind effect to shot
+            const windEffectX = Math.cos(windAngle * Math.PI / 180) * windSpeed * 0.5;
+            const windEffectY = Math.sin(windAngle * Math.PI / 180) * windSpeed * 0.5;
+            
+            // Check for hits with wind compensation
+            let hit = false;
+            ducks.forEach(duckObj => {
+                const duck = duckObj.element;
+                const duckRect = duck.getBoundingClientRect();
+                const duckX = duckRect.left + duckRect.width / 2;
+                const duckY = duckRect.top + duckRect.height / 2;
+                
+                // Adjust aim for wind and bullet drop
+                const adjustedX = x + windEffectX * (duckX - x) / 100;
+                const adjustedY = y + windEffectY * (duckY - y) / 100 + (duckY - y) * 0.01;
+                
+                const distance = Math.sqrt(
+                    Math.pow(adjustedX - duckX, 2) + 
+                    Math.pow(adjustedY - duckY, 2)
+                );
+                
+                if (distance < 30) { // Hit radius
+                    hit = true;
+                    duckHitSound.currentTime = 0;
+                    duckHitSound.play();
+                    
+                    // Add score (more points for headshots)
+                    const isHeadshot = distance < 15;
+                    const points = isHeadshot ? 150 : 100;
+                    score += points;
+                    scoreElement.textContent = score;
+                    
+                    // Show points popup
+                    const pointsPopup = document.createElement('div');
+                    pointsPopup.className = 'points-popup';
+                    pointsPopup.textContent = `+${points}${isHeadshot ? ' HEADSHOT!' : ''}`;
+                    pointsPopup.style.left = duckX + 'px';
+                    pointsPopup.style.top = duckY + 'px';
+                    gameContainer.appendChild(pointsPopup);
+                    
+                    // Feather explosion
+                    const feathers = document.createElement('div');
+                    feathers.className = 'feathers';
+                    feathers.style.left = (duckX - 50) + 'px';
+                    feathers.style.top = (duckY - 50) + 'px';
+                    gameContainer.appendChild(feathers);
+                    
+                    // Remove duck
+                    duck.remove();
+                    ducks = ducks.filter(d => d.element !== duck);
+                    
+                    // Spawn new duck if available
+                    if (ducksLeft > 0) {
+                        setTimeout(() => spawnDuck(), 1000);
+                    } else if (ducks.length === 0) {
+                        endGame();
+                    }
+                }
+            });
+            
+            // Auto-reload when empty
+            if (ammo <= 0) {
+                setTimeout(reload, 1000);
+            }
+        }
+
+        // Reload function
+        function reload() {
+            if (!gameRunning || ammo === 5) return;
+            
+            ammo = 5;
+            ammoCountElement.textContent = ammo;
+            reloadSound.currentTime = 0;
+            reloadSound.play();
+            
+            // Clear old bullet holes
+            bulletHoles.forEach(hole => hole.remove());
+            bulletHoles = [];
+        }
+
+        // Zoom function
+        function toggleZoom() {
+            isZoomed = !isZoomed;
+            zoomLevel = isZoomed ? 2 : 1;
+            scope.classList.toggle('zoomed');
+            zoomSound.currentTime = 0;
+            zoomSound.play();
+        }
+
+        // End game
+        function endGame() {
+            gameRunning = false;
+            finalScoreElement.textContent = score;
+            gameOverElement.style.display = 'block';
+            
+            // Performance comment
+            if (score >= 1000) {
+                performanceComment.textContent = "Expert marksmanship! Perfect score!";
+            } else if (score >= 700) {
+                performanceComment.textContent = "Excellent shooting! Nearly perfect!";
+            } else if (score >= 400) {
+                performanceComment.textContent = "Good hunting session!";
+            } else {
+                performanceComment.textContent = "Need more practice!";
+            }
+            
+            victorySound.play();
+        }
+
+        // Event Listeners
+        gameContainer.addEventListener('mousemove', (e) => {
+            scope.style.left = e.clientX + 'px';
+            scope.style.top = e.clientY + 'px';
+        });
+
+        gameContainer.addEventListener('click', (e) => {
+            shoot(e.clientX, e.clientY);
+        });
+
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'r' || e.key === 'R') {
+                reload();
+            }
+            if (e.key === 'z' || e.key === 'Z') {
+                toggleZoom();
+            }
+        });
+
+        restartBtn.addEventListener('click', initGame);
+
+        // Start the game
+        initGame();
+    </script>
+</body>
+</html>
