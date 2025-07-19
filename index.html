@@ -2,9 +2,19 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Professional Duck Hunt</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Cross-Platform Duck Hunt</title>
     <style>
+        * {
+            -webkit-touch-callout: none;
+            -webkit-user-select: none;
+            -khtml-user-select: none;
+            -moz-user-select: none;
+            -ms-user-select: none;
+            user-select: none;
+            -webkit-tap-highlight-color: transparent;
+        }
+        
         body {
             margin: 0;
             padding: 0;
@@ -12,11 +22,11 @@
             background: #333;
             overflow: hidden;
             font-family: Arial, sans-serif;
-            cursor: none;
+            touch-action: none;
         }
 
         #game-container {
-            position: relative;
+            position: fixed;
             width: 100%;
             height: 100%;
             background: linear-gradient(to bottom, #87CEEB 0%, #1E90FF 100%);
@@ -25,8 +35,8 @@
 
         #scope {
             position: absolute;
-            width: 200px;
-            height: 200px;
+            width: 150px;
+            height: 150px;
             border: 2px solid red;
             border-radius: 50%;
             pointer-events: none;
@@ -57,7 +67,7 @@
         }
 
         #scope.zoomed {
-            transform: translate(-50%, -50%) scale(0.5);
+            transform: translate(-50%, -50%) scale(0.7);
             background: rgba(0, 0, 0, 0.7);
         }
 
@@ -110,74 +120,74 @@
 
         /* Mallard Duck */
         .mallard {
-            width: 60px;
-            height: 60px;
+            width: 50px;
+            height: 50px;
         }
         .mallard .duck-body {
-            width: 60px;
-            height: 40px;
+            width: 50px;
+            height: 35px;
             background: #007755;
             border-radius: 50% 50% 40% 40%;
         }
         .mallard .duck-wing {
-            width: 30px;
-            height: 20px;
-            background: #005544;
-            border-radius: 50%;
-            top: 10px;
-            left: 15px;
-        }
-        .mallard .duck-head {
-            width: 20px;
-            height: 20px;
-            background: #007755;
-            border-radius: 50%;
-            top: -5px;
-            left: 40px;
-        }
-        .mallard .duck-eye {
-            top: 5px;
-            left: 12px;
-        }
-        .mallard .duck-beak {
-            top: 10px;
-            left: 18px;
-        }
-
-        /* Wood Duck */
-        .wood-duck {
-            width: 50px;
-            height: 50px;
-        }
-        .wood-duck .duck-body {
-            width: 50px;
-            height: 35px;
-            background: #FF5733;
-            border-radius: 50% 50% 40% 40%;
-        }
-        .wood-duck .duck-wing {
             width: 25px;
             height: 15px;
-            background: #CC4622;
+            background: #005544;
             border-radius: 50%;
             top: 8px;
             left: 12px;
         }
-        .wood-duck .duck-head {
+        .mallard .duck-head {
             width: 18px;
             height: 18px;
-            background: #FF5733;
+            background: #007755;
             border-radius: 50%;
             top: -4px;
             left: 32px;
         }
-        .wood-duck .duck-eye {
+        .mallard .duck-eye {
             top: 4px;
             left: 10px;
         }
-        .wood-duck .duck-beak {
+        .mallard .duck-beak {
             top: 8px;
             left: 15px;
+        }
+
+        /* Wood Duck */
+        .wood-duck {
+            width: 45px;
+            height: 45px;
+        }
+        .wood-duck .duck-body {
+            width: 45px;
+            height: 30px;
+            background: #FF5733;
+            border-radius: 50% 50% 40% 40%;
+        }
+        .wood-duck .duck-wing {
+            width: 22px;
+            height: 13px;
+            background: #CC4622;
+            border-radius: 50%;
+            top: 7px;
+            left: 11px;
+        }
+        .wood-duck .duck-head {
+            width: 16px;
+            height: 16px;
+            background: #FF5733;
+            border-radius: 50%;
+            top: -3px;
+            left: 29px;
+        }
+        .wood-duck .duck-eye {
+            top: 3px;
+            left: 9px;
+        }
+        .wood-duck .duck-beak {
+            top: 7px;
+            left: 13px;
         }
 
         /* Rubber Duck */
@@ -216,32 +226,57 @@
             left: 12px;
         }
 
-        /* Rest of your existing CSS remains the same */
         #hud {
             position: absolute;
-            bottom: 20px;
-            left: 20px;
+            bottom: 15px;
+            left: 15px;
             background: rgba(0, 0, 0, 0.7);
             color: white;
-            padding: 15px;
-            border-radius: 10px;
+            padding: 12px;
+            border-radius: 8px;
             font-family: 'Courier New', monospace;
             z-index: 50;
             display: flex;
             flex-direction: column;
             gap: 5px;
+            font-size: 14px;
         }
 
         #ammo {
             position: absolute;
-            bottom: 20px;
-            right: 20px;
+            bottom: 15px;
+            right: 15px;
             background: rgba(0, 0, 0, 0.7);
             color: white;
-            padding: 15px;
-            border-radius: 10px;
+            padding: 12px;
+            border-radius: 8px;
             font-family: 'Courier New', monospace;
             z-index: 50;
+            font-size: 14px;
+        }
+
+        #controls {
+            position: absolute;
+            top: 15px;
+            right: 15px;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            z-index: 50;
+        }
+
+        .control-btn {
+            width: 60px;
+            height: 60px;
+            background: rgba(0, 0, 0, 0.7);
+            color: white;
+            border: none;
+            border-radius: 50%;
+            font-size: 14px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            cursor: pointer;
         }
 
         #game-over {
@@ -251,35 +286,30 @@
             transform: translate(-50%, -50%);
             background: rgba(0, 0, 0, 0.9);
             color: white;
-            padding: 30px;
+            padding: 20px;
             border-radius: 15px;
             text-align: center;
             display: none;
             z-index: 200;
-            width: 400px;
+            width: 80%;
+            max-width: 350px;
         }
 
         #restart-btn {
             background: #4CAF50;
             color: white;
             border: none;
-            padding: 12px 24px;
-            font-size: 18px;
+            padding: 10px 20px;
+            font-size: 16px;
             cursor: pointer;
             border-radius: 8px;
-            margin-top: 20px;
-            transition: all 0.3s;
-        }
-
-        #restart-btn:hover {
-            background: #45a049;
-            transform: scale(1.05);
+            margin-top: 15px;
         }
 
         .bullet-hole {
             position: absolute;
-            width: 10px;
-            height: 10px;
+            width: 8px;
+            height: 8px;
             background: black;
             border-radius: 50%;
             z-index: 5;
@@ -287,8 +317,8 @@
 
         .feathers {
             position: absolute;
-            width: 100px;
-            height: 100px;
+            width: 80px;
+            height: 80px;
             background-image: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><path d="M30,50 Q40,20 60,30 Q80,40 70,70 Q60,100 40,90 Q20,80 30,50" fill="white" opacity="0.8"/></svg>');
             background-size: contain;
             z-index: 8;
@@ -304,7 +334,7 @@
             position: absolute;
             color: gold;
             font-weight: bold;
-            font-size: 24px;
+            font-size: 20px;
             text-shadow: 2px 2px 4px black;
             animation: floatUp 1s forwards;
             z-index: 15;
@@ -317,27 +347,65 @@
 
         #wind-indicator {
             position: absolute;
-            top: 20px;
+            top: 15px;
             left: 50%;
             transform: translateX(-50%);
             background: rgba(0, 0, 0, 0.7);
             color: white;
-            padding: 10px 20px;
+            padding: 8px 15px;
             border-radius: 5px;
             font-family: 'Courier New', monospace;
             z-index: 50;
             display: flex;
             align-items: center;
-            gap: 10px;
+            gap: 8px;
+            font-size: 14px;
         }
 
         #wind-arrow {
             width: 0;
             height: 0;
-            border-left: 10px solid transparent;
-            border-right: 10px solid transparent;
-            border-bottom: 15px solid white;
+            border-left: 8px solid transparent;
+            border-right: 8px solid transparent;
+            border-bottom: 12px solid white;
             transform-origin: center bottom;
+        }
+
+        @media (max-width: 600px) {
+            #scope {
+                width: 120px;
+                height: 120px;
+            }
+            
+            .mallard { width: 45px; height: 45px; }
+            .mallard .duck-body { width: 45px; height: 30px; }
+            .mallard .duck-wing { width: 22px; height: 13px; top: 7px; left: 11px; }
+            .mallard .duck-head { width: 16px; height: 16px; left: 29px; }
+            
+            .wood-duck { width: 40px; height: 40px; }
+            .wood-duck .duck-body { width: 40px; height: 25px; }
+            .wood-duck .duck-wing { width: 20px; height: 12px; top: 6px; left: 10px; }
+            .wood-duck .duck-head { width: 14px; height: 14px; left: 26px; }
+            
+            .rubber-duck { width: 35px; height: 35px; }
+            .rubber-duck .duck-body { width: 35px; height: 25px; }
+            .rubber-duck .duck-wing { width: 17px; height: 10px; top: 6px; left: 9px; }
+            .rubber-duck .duck-head { width: 13px; height: 13px; left: 22px; }
+            
+            #hud, #ammo {
+                font-size: 12px;
+                padding: 10px;
+            }
+            
+            .control-btn {
+                width: 50px;
+                height: 50px;
+                font-size: 12px;
+            }
+            
+            .points-popup {
+                font-size: 16px;
+            }
         }
     </style>
 </head>
@@ -356,6 +424,10 @@
         <div id="ammo">
             <div>AMMO: <span id="ammo-count">5</span>/5</div>
         </div>
+        <div id="controls">
+            <button class="control-btn" id="reload-btn">RELOAD (R)</button>
+            <button class="control-btn" id="zoom-btn">ZOOM (Z)</button>
+        </div>
         <div id="game-over">
             <h2>MISSION COMPLETE</h2>
             <p>FINAL SCORE: <span id="final-score">0</span></p>
@@ -365,7 +437,7 @@
     </div>
 
     <!-- Sound Effects -->
-   <audio id="gunshot" src="https://textronicsbucket.s3.ap-south-1.amazonaws.com/audio_file/gun-shot-359196.mp3" preload="auto"></audio>
+    <audio id="gunshot" src="https://textronicsbucket.s3.ap-south-1.amazonaws.com/audio_file/gun-shot-359196.mp3" preload="auto"></audio>
     <audio id="reload" src="https://textronicsbucket.s3.ap-south-1.amazonaws.com/audio_file/reload-123781.mp3" preload="auto"></audio>
     <audio id="duck-quack" src="https://textronicsbucket.s3.ap-south-1.amazonaws.com/audio_file/075176_duck-quack-40345.mp3" preload="auto"></audio>
     <audio id="duck-hit" src="https://textronicsbucket.s3.ap-south-1.amazonaws.com/audio_file/duck-hit.mp3" preload="auto"></audio>
@@ -386,6 +458,8 @@
         const windValue = document.getElementById('wind-value');
         const windDirection = document.getElementById('wind-direction');
         const performanceComment = document.getElementById('performance-comment');
+        const reloadBtn = document.getElementById('reload-btn');
+        const zoomBtn = document.getElementById('zoom-btn');
 
         // Sound Effects
         const gunshotSound = document.getElementById('gunshot');
@@ -431,6 +505,9 @@
         let windAngle = 0;
         let bulletHoles = [];
         let zoomLevel = 1;
+        let touchX = 0;
+        let touchY = 0;
+        let isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
 
         // Initialize Game
         function initGame() {
@@ -704,7 +781,7 @@
         // Zoom function
         function toggleZoom() {
             isZoomed = !isZoomed;
-            zoomLevel = isZoomed ? 2 : 1;
+            zoomLevel = isZoomed ? 1.5 : 1;
             scope.classList.toggle('zoomed');
             zoomSound.currentTime = 0;
             zoomSound.play();
@@ -730,15 +807,48 @@
             victorySound.play();
         }
 
+        // Handle touch events
+        function handleTouchStart(e) {
+            e.preventDefault();
+            const touch = e.touches[0];
+            touchX = touch.clientX;
+            touchY = touch.clientY;
+        }
+
+        function handleTouchMove(e) {
+            e.preventDefault();
+            const touch = e.touches[0];
+            scope.style.left = touch.clientX + 'px';
+            scope.style.top = touch.clientY + 'px';
+            touchX = touch.clientX;
+            touchY = touch.clientY;
+        }
+
+        function handleTouchEnd(e) {
+            e.preventDefault();
+            shoot(touchX, touchY);
+        }
+
         // Event Listeners
         gameContainer.addEventListener('mousemove', (e) => {
-            scope.style.left = e.clientX + 'px';
-            scope.style.top = e.clientY + 'px';
+            if (!isMobile) {
+                scope.style.left = e.clientX + 'px';
+                scope.style.top = e.clientY + 'px';
+            }
         });
 
         gameContainer.addEventListener('click', (e) => {
-            shoot(e.clientX, e.clientY);
+            if (!isMobile) {
+                shoot(e.clientX, e.clientY);
+            }
         });
+
+        // Touch events for mobile
+        if (isMobile) {
+            gameContainer.addEventListener('touchstart', handleTouchStart, {passive: false});
+            gameContainer.addEventListener('touchmove', handleTouchMove, {passive: false});
+            gameContainer.addEventListener('touchend', handleTouchEnd, {passive: false});
+        }
 
         document.addEventListener('keydown', (e) => {
             if (e.key === 'r' || e.key === 'R') {
@@ -749,6 +859,9 @@
             }
         });
 
+        // Control buttons
+        reloadBtn.addEventListener('click', reload);
+        zoomBtn.addEventListener('click', toggleZoom);
         restartBtn.addEventListener('click', initGame);
 
         // Start the game
