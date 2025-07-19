@@ -27,14 +27,14 @@
             position: absolute;
             width: 200px;
             height: 200px;
-            border: 2px solid rgb(51, 255, 0);
+            border: 2px solid red;
             border-radius: 50%;
             pointer-events: none;
             z-index: 100;
             transform: translate(-50%, -50%) scale(1);
             transition: transform 0.3s;
             background: rgba(0, 0, 0, 0.3);
-            box-shadow: 0 0 20px rgb(51, 255, 0);
+            box-shadow: 0 0 20px rgba(255, 0, 0, 0.5);
             display: flex;
             justify-content: center;
             align-items: center;
@@ -63,31 +63,160 @@
 
         .duck {
             position: absolute;
-            background-size: contain;
-            background-repeat: no-repeat;
             z-index: 10;
-            transition: transform 0.1s;
             transform-origin: center;
         }
 
+        .duck-body {
+            position: absolute;
+            background-size: contain;
+            background-repeat: no-repeat;
+        }
+
+        .duck-wing {
+            position: absolute;
+            background-size: contain;
+            background-repeat: no-repeat;
+            transform-origin: center;
+            animation: flapWing 0.3s infinite alternate;
+        }
+
+        @keyframes flapWing {
+            0% { transform: rotate(-20deg); }
+            100% { transform: rotate(20deg); }
+        }
+
+        .duck-head {
+            position: absolute;
+            background-size: contain;
+            background-repeat: no-repeat;
+        }
+
+        .duck-eye {
+            position: absolute;
+            width: 4px;
+            height: 4px;
+            background: black;
+            border-radius: 50%;
+        }
+
+        .duck-beak {
+            position: absolute;
+            width: 10px;
+            height: 5px;
+            background: orange;
+            border-radius: 50%;
+        }
+
+        /* Mallard Duck */
         .mallard {
             width: 60px;
             height: 60px;
-            background-image: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><path d="M30,50 Q50,20 70,50 Q90,70 70,90 Q50,110 30,90 Q10,70 30,50" fill="%23007755"/><circle cx="70" cy="50" r="5" fill="black"/><path d="M75,55 Q80,60 75,65" stroke="black" stroke-width="2" fill="none"/></svg>');
+        }
+        .mallard .duck-body {
+            width: 60px;
+            height: 40px;
+            background: #007755;
+            border-radius: 50% 50% 40% 40%;
+        }
+        .mallard .duck-wing {
+            width: 30px;
+            height: 20px;
+            background: #005544;
+            border-radius: 50%;
+            top: 10px;
+            left: 15px;
+        }
+        .mallard .duck-head {
+            width: 20px;
+            height: 20px;
+            background: #007755;
+            border-radius: 50%;
+            top: -5px;
+            left: 40px;
+        }
+        .mallard .duck-eye {
+            top: 5px;
+            left: 12px;
+        }
+        .mallard .duck-beak {
+            top: 10px;
+            left: 18px;
         }
 
+        /* Wood Duck */
         .wood-duck {
             width: 50px;
             height: 50px;
-            background-image: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><path d="M30,50 Q50,20 70,50 Q90,70 70,90 Q50,110 30,90 Q10,70 30,50" fill="%23FF5733"/><circle cx="70" cy="50" r="5" fill="black"/><path d="M75,55 Q80,60 75,65" stroke="black" stroke-width="2" fill="none"/></svg>');
+        }
+        .wood-duck .duck-body {
+            width: 50px;
+            height: 35px;
+            background: #FF5733;
+            border-radius: 50% 50% 40% 40%;
+        }
+        .wood-duck .duck-wing {
+            width: 25px;
+            height: 15px;
+            background: #CC4622;
+            border-radius: 50%;
+            top: 8px;
+            left: 12px;
+        }
+        .wood-duck .duck-head {
+            width: 18px;
+            height: 18px;
+            background: #FF5733;
+            border-radius: 50%;
+            top: -4px;
+            left: 32px;
+        }
+        .wood-duck .duck-eye {
+            top: 4px;
+            left: 10px;
+        }
+        .wood-duck .duck-beak {
+            top: 8px;
+            left: 15px;
         }
 
+        /* Rubber Duck */
         .rubber-duck {
             width: 40px;
             height: 40px;
-            background-image: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><circle cx="50" cy="50" r="40" fill="%23FFD700"/><circle cx="70" cy="50" r="5" fill="black"/><path d="M75,55 Q80,60 75,65" stroke="black" stroke-width="2" fill="none"/></svg>');
+        }
+        .rubber-duck .duck-body {
+            width: 40px;
+            height: 30px;
+            background: #FFD700;
+            border-radius: 50% 50% 40% 40%;
+        }
+        .rubber-duck .duck-wing {
+            width: 20px;
+            height: 12px;
+            background: #FFC000;
+            border-radius: 50%;
+            top: 7px;
+            left: 10px;
+        }
+        .rubber-duck .duck-head {
+            width: 15px;
+            height: 15px;
+            background: #FFD700;
+            border-radius: 50%;
+            top: -3px;
+            left: 25px;
+        }
+        .rubber-duck .duck-eye {
+            top: 3px;
+            left: 8px;
+        }
+        .rubber-duck .duck-beak {
+            top: 6px;
+            left: 12px;
         }
 
+        /* Rest of your existing CSS remains the same */
         #hud {
             position: absolute;
             bottom: 20px;
@@ -339,6 +468,35 @@
             }, 3000);
         }
 
+        // Create duck with animated wings
+        function createDuckElement(duckType) {
+            const duck = document.createElement('div');
+            duck.className = `duck ${duckType.class}`;
+            
+            const body = document.createElement('div');
+            body.className = 'duck-body';
+            
+            const wing = document.createElement('div');
+            wing.className = 'duck-wing';
+            
+            const head = document.createElement('div');
+            head.className = 'duck-head';
+            
+            const eye = document.createElement('div');
+            eye.className = 'duck-eye';
+            
+            const beak = document.createElement('div');
+            beak.className = 'duck-beak';
+            
+            head.appendChild(eye);
+            head.appendChild(beak);
+            duck.appendChild(body);
+            duck.appendChild(wing);
+            duck.appendChild(head);
+            
+            return duck;
+        }
+
         // Get random duck type based on spawn chances
         function getRandomDuckType() {
             const rand = Math.random();
@@ -374,8 +532,7 @@
             ducksLeftElement.textContent = ducksLeft;
             
             const duckType = getRandomDuckType();
-            const duck = document.createElement('div');
-            duck.className = `duck ${duckType.class}`;
+            const duck = createDuckElement(duckType);
             
             // Random starting position (left or right edge)
             const startSide = Math.random() > 0.5 ? 'left' : 'right';
