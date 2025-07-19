@@ -27,14 +27,14 @@
             position: absolute;
             width: 200px;
             height: 200px;
-            border: 2px solid rgb(217, 255, 0);
+            border: 2px solid rgb(51, 255, 0);
             border-radius: 50%;
             pointer-events: none;
             z-index: 100;
             transform: translate(-50%, -50%) scale(1);
             transition: transform 0.3s;
             background: rgba(0, 0, 0, 0.3);
-            box-shadow: 0 0 20px rgba(255, 0, 0, 0.5);
+            box-shadow: 0 0 20px rgb(51, 255, 0);
             display: flex;
             justify-content: center;
             align-items: center;
@@ -63,14 +63,29 @@
 
         .duck {
             position: absolute;
-            width: 60px;
-            height: 60px;
-            background-image: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><path d="M30,50 Q50,20 70,50 Q90,70 70,90 Q50,110 30,90 Q10,70 30,50" fill="%23FF8C00"/><circle cx="70" cy="50" r="5" fill="black"/><path d="M75,55 Q80,60 75,65" stroke="black" stroke-width="2" fill="none"/></svg>');
             background-size: contain;
             background-repeat: no-repeat;
             z-index: 10;
             transition: transform 0.1s;
             transform-origin: center;
+        }
+
+        .mallard {
+            width: 60px;
+            height: 60px;
+            background-image: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><path d="M30,50 Q50,20 70,50 Q90,70 70,90 Q50,110 30,90 Q10,70 30,50" fill="%23007755"/><circle cx="70" cy="50" r="5" fill="black"/><path d="M75,55 Q80,60 75,65" stroke="black" stroke-width="2" fill="none"/></svg>');
+        }
+
+        .wood-duck {
+            width: 50px;
+            height: 50px;
+            background-image: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><path d="M30,50 Q50,20 70,50 Q90,70 70,90 Q50,110 30,90 Q10,70 30,50" fill="%23FF5733"/><circle cx="70" cy="50" r="5" fill="black"/><path d="M75,55 Q80,60 75,65" stroke="black" stroke-width="2" fill="none"/></svg>');
+        }
+
+        .rubber-duck {
+            width: 40px;
+            height: 40px;
+            background-image: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><circle cx="50" cy="50" r="40" fill="%23FFD700"/><circle cx="70" cy="50" r="5" fill="black"/><path d="M75,55 Q80,60 75,65" stroke="black" stroke-width="2" fill="none"/></svg>');
         }
 
         #hud {
@@ -251,6 +266,31 @@
         const victorySound = document.getElementById('victory-sound');
         const zoomSound = document.getElementById('zoom-sound');
 
+        // Duck Types Configuration
+        const DUCK_TYPES = {
+            MALLARD: {
+                class: 'mallard',
+                speed: 2.5,
+                points: 100,
+                headshotPoints: 150,
+                spawnChance: 0.6
+            },
+            WOOD_DUCK: {
+                class: 'wood-duck',
+                speed: 3.5,
+                points: 150,
+                headshotPoints: 225,
+                spawnChance: 0.3
+            },
+            RUBBER_DUCK: {
+                class: 'rubber-duck',
+                speed: 4.5,
+                points: 200,
+                headshotPoints: 300,
+                spawnChance: 0.1
+            }
+        };
+
         // Game Variables
         let score = 0;
         let ducksLeft = 10;
@@ -299,6 +339,21 @@
             }, 3000);
         }
 
+        // Get random duck type based on spawn chances
+        function getRandomDuckType() {
+            const rand = Math.random();
+            let cumulativeChance = 0;
+            
+            for (const type in DUCK_TYPES) {
+                cumulativeChance += DUCK_TYPES[type].spawnChance;
+                if (rand <= cumulativeChance) {
+                    return DUCK_TYPES[type];
+                }
+            }
+            
+            return DUCK_TYPES.MALLARD; // fallback
+        }
+
         // Update wind conditions
         function updateWind() {
             if (!gameRunning) return;
@@ -318,8 +373,9 @@
             ducksLeft--;
             ducksLeftElement.textContent = ducksLeft;
             
+            const duckType = getRandomDuckType();
             const duck = document.createElement('div');
-            duck.className = 'duck';
+            duck.className = `duck ${duckType.class}`;
             
             // Random starting position (left or right edge)
             const startSide = Math.random() > 0.5 ? 'left' : 'right';
@@ -336,7 +392,7 @@
             gameContainer.appendChild(duck);
             
             // Flight parameters
-            const speed = 2 + Math.random() * 3;
+            const speed = duckType.speed + Math.random() * 1.5;
             const amplitude = 50 + Math.random() * 100;
             const frequency = 0.01 + Math.random() * 0.02;
             let x = startSide === 'left' ? -60 : window.innerWidth;
@@ -384,7 +440,8 @@
             
             ducks.push({
                 element: duck,
-                fly: fly
+                fly: fly,
+                type: duckType
             });
             
             fly();
@@ -435,7 +492,7 @@
                     
                     // Add score (more points for headshots)
                     const isHeadshot = distance < 15;
-                    const points = isHeadshot ? 150 : 100;
+                    const points = isHeadshot ? duckObj.type.headshotPoints : duckObj.type.points;
                     score += points;
                     scoreElement.textContent = score;
                     
@@ -503,11 +560,11 @@
             gameOverElement.style.display = 'block';
             
             // Performance comment
-            if (score >= 1000) {
-                performanceComment.textContent = "Expert marksmanship! Perfect score!";
-            } else if (score >= 700) {
-                performanceComment.textContent = "Excellent shooting! Nearly perfect!";
-            } else if (score >= 400) {
+            if (score >= 1500) {
+                performanceComment.textContent = "Legendary hunter! Perfect score!";
+            } else if (score >= 1000) {
+                performanceComment.textContent = "Master marksman! Excellent shooting!";
+            } else if (score >= 600) {
                 performanceComment.textContent = "Good hunting session!";
             } else {
                 performanceComment.textContent = "Need more practice!";
